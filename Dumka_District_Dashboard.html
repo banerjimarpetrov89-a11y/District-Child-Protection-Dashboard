@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dumka District — Child Protection Case Review · Version 1</title>
+<!-- Chart.js: primary CDN with automatic fallback to a secondary CDN if the first is blocked/unreachable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"
+        onload="document.dispatchEvent(new Event('chartjs-ready'))"
+        onerror="(function(){
+          var s=document.createElement('script');
+          s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
+          s.onload=function(){ document.dispatchEvent(new Event('chartjs-ready')); };
+          s.onerror=function(){ document.dispatchEvent(new Event('chartjs-failed')); };
+          document.head.appendChild(s);
+        })()"></script>
+<!-- Leaflet (open, key-free mapping library) for the Police-Station map: same primary/fallback pattern -->
+<link rel="stylesheet" id="leafletCss"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+      onerror="this.href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css'">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+        onload="document.dispatchEvent(new Event('leaflet-ready'))"
+        onerror="(function(){
+          var s=document.createElement('script');
+          s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js';
+          s.onload=function(){ document.dispatchEvent(new Event('leaflet-ready')); };
+          s.onerror=function(){ document.dispatchEvent(new Event('leaflet-failed')); };
+          document.head.appendChild(s);
+        })()"></script>
+<style>
+  :root{
+    --ink:#1B2A3A;
+    --ink-soft:#425163;
+    --paper:#F1EEE6;
+    --panel:#FBF9F4;
+    --line:#D8D1BE;
+    --seal:#7A1F2B;
+    --seal-tint:#F4E3E1;
+    --brass:#9C7C3C;
+    --brass-tint:#F1E9D4;
+    --red:#B8362A;
+    --red-tint:#F6E0DC;
+    --amber:#B4820F;
+    --amber-tint:#F7EBCB;
+    --green:#2E6E4E;
+    --green-tint:#DEEBE1;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --mono: 'Courier New', Courier, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); line-height:1.5;
+    background-image:
+      repeating-linear-gradient(to bottom, transparent 0 39px, rgba(27,42,58,0.035) 39px 40px);
+  }
+  a{color:var(--seal);}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  /* ---------- HEADER ---------- */
+  header.masthead{
+    background:var(--ink); color:var(--paper); position:relative; overflow:hidden;
+    border-bottom:4px solid var(--brass);
+  }
+  header.masthead::after{
+    content:""; position:absolute; inset:0;
+    background-image: repeating-linear-gradient(115deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 26px);
+    pointer-events:none;
+  }
+  .masthead-inner{padding:38px 28px 30px; position:relative;}
+  .eyebrow{
+    font-family:var(--mono); letter-spacing:.14em; text-transform:uppercase;
+    font-size:12px; color:#C9B98A; margin:0 0 10px;
+  }
+  h1{
+    font-family:var(--serif); font-weight:600; font-size:clamp(28px,4vw,44px);
+    margin:0 0 8px; letter-spacing:.2px;
+  }
+  .sub{color:#C7CFD8; font-size:15px; max-width:640px; margin:0 0 0;}
+  .seal-badge{
+    position:absolute; top:26px; right:28px; width:104px; height:104px; border-radius:50%;
+    border:2px solid var(--brass); display:flex; align-items:center; justify-content:center;
+    transform:rotate(-8deg);
+  }
+  .seal-badge svg{width:100%; height:100%;}
+  .seal-badge text{
+    font-family:var(--mono); font-size:8.6px; letter-spacing:2.5px; fill:#C9B98A;
+  }
+  .seal-badge .core{fill:none; stroke:var(--brass); stroke-width:1;}
+  .seal-badge .num{font-family:var(--serif); font-size:22px; fill:var(--paper); font-weight:700;}
+
+  /* ---------- NAV ---------- */
+  nav.tabs{
+    position:sticky; top:0; z-index:50; background:var(--panel);
+    border-bottom:1px solid var(--line); box-shadow:0 2px 6px rgba(27,42,58,.06);
+  }
+  .tabs-inner{
+    display:flex; gap:2px; overflow-x:auto; padding:0 28px; max-width:1180px; margin:0 auto;
+  }
+  .tabs-inner button{
+    font-family:var(--sans); font-size:13px; font-weight:600; letter-spacing:.02em;
+    color:var(--ink-soft); background:none; border:none; padding:14px 14px;
+    border-bottom:3px solid transparent; cursor:pointer; white-space:nowrap;
+  }
+  .tabs-inner button:hover{color:var(--ink);}
+  .tabs-inner button.active{color:var(--seal); border-bottom-color:var(--seal);}
+
+  section{padding:46px 0 10px;}
+  .section-head{margin-bottom:22px;}
+  .index{
+    font-family:var(--mono); color:var(--brass); font-size:12px; letter-spacing:.12em;
+  }
+  h2{font-family:var(--serif); font-size:26px; margin:2px 0 6px; color:var(--ink);}
+  .lede{color:var(--ink-soft); font-size:14.5px; max-width:760px; margin:0;}
+
+  /* ---------- KPI STRIP ---------- */
+  .kpi-grid{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line);
+    border:1px solid var(--line); margin-top:8px;
+  }
+  .kpi{background:var(--panel); padding:20px 16px; text-align:left;}
+  .kpi .num{font-family:var(--serif); font-size:34px; font-weight:700; color:var(--ink); line-height:1;}
+  .kpi .lbl{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-top:8px;}
+  .kpi.flag .num{color:var(--seal);}
+  @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+
+  /* ---------- PANELS / CARDS ---------- */
+  .panel{background:var(--panel); border:1px solid var(--line); padding:22px; margin-bottom:18px;}
+  .two-col{display:grid; grid-template-columns:1.3fr 1fr; gap:18px;}
+  @media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+  .chart-box{position:relative; height:420px;}
+  .chart-box.short{height:300px;}
+
+  /* ---------- TABLE ---------- */
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th, td{padding:9px 10px; text-align:left; border-bottom:1px solid var(--line);}
+  th{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft);
+    cursor:pointer; user-select:none; position:sticky; top:49px; background:var(--panel);
+    white-space:nowrap;
+  }
+  th:hover{color:var(--seal);}
+  th.sorted::after{content:" ▾"; color:var(--seal);}
+  th.sorted.asc::after{content:" ▴"; color:var(--seal);}
+  tbody tr{cursor:pointer;}
+  tbody tr:hover{background:var(--brass-tint);}
+  tbody tr.selected{background:var(--seal-tint);}
+  td.num, th.num{text-align:right; font-family:var(--mono);}
+  .badge{
+    display:inline-block; padding:2px 9px; border-radius:2px; font-size:11px; font-weight:700;
+    letter-spacing:.03em;
+  }
+  .badge.RED{background:var(--red-tint); color:var(--red);}
+  .badge.AMBER{background:var(--amber-tint); color:var(--amber);}
+  .badge.GREEN{background:var(--green-tint); color:var(--green);}
+  .badge.type{background:var(--brass-tint); color:#6b5426; font-weight:600;}
+
+  /* ---------- SPOTLIGHT ---------- */
+  #spotlight{
+    border-left:4px solid var(--seal);
+  }
+  #spotlight h3{font-family:var(--serif); font-size:20px; margin:0 0 4px;}
+  #spotlight .sub{color:var(--ink-soft); font-size:12.5px; margin-bottom:14px;}
+  .spot-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  .spot-grid div{border-top:2px solid var(--line); padding-top:6px;}
+  .spot-grid .n{font-family:var(--serif); font-size:22px; font-weight:700;}
+  .spot-grid .l{font-size:10.5px; text-transform:uppercase; color:var(--ink-soft); letter-spacing:.04em;}
+  @media(max-width:700px){.spot-grid{grid-template-columns:repeat(2,1fr);}}
+
+  /* ---------- HOTSPOT CARDS ---------- */
+  .hotspot-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  @media(max-width:900px){.hotspot-grid{grid-template-columns:repeat(2,1fr);}}
+  .hotspot-card{background:var(--panel); border:1px solid var(--line); border-top:4px solid var(--brass); padding:16px;}
+  .hotspot-card h4{font-family:var(--serif); font-size:16px; margin:0 0 4px;}
+  .hotspot-card p{font-size:12px; color:var(--ink-soft); margin:0 0 10px;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{
+    font-size:11.5px; background:var(--brass-tint); color:#6b5426; padding:3px 9px; border-radius:2px;
+    cursor:pointer; font-weight:600;
+  }
+  .chip:hover{background:var(--seal-tint); color:var(--seal);}
+
+  /* ---------- CATEGORY TABS ---------- */
+  .subtab-row{display:flex; gap:8px; margin-bottom:16px;}
+  .subtab-row button{
+    font-family:var(--sans); font-weight:700; font-size:12.5px; letter-spacing:.03em;
+    padding:9px 16px; border:1px solid var(--line); background:var(--panel); color:var(--ink-soft); cursor:pointer;
+  }
+  .subtab-row button.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .stat-line{display:flex; gap:26px; flex-wrap:wrap; margin-bottom:18px;}
+  .stat-line .s{border-top:2px solid var(--seal); padding-top:6px;}
+  .stat-line .s .n{font-family:var(--serif); font-size:24px; font-weight:700;}
+  .stat-line .s .l{font-size:11px; text-transform:uppercase; color:var(--ink-soft);}
+
+  /* ---------- INSIGHTS ---------- */
+  ol.ledger{list-style:none; margin:0; padding:0; counter-reset:ledger;}
+  ol.ledger li{
+    counter-increment:ledger; display:grid; grid-template-columns:44px 1fr; gap:14px;
+    padding:14px 0; border-bottom:1px solid var(--line);
+  }
+  ol.ledger li::before{
+    content:counter(ledger, decimal-leading-zero); font-family:var(--mono); color:var(--brass);
+    font-size:13px; padding-top:2px;
+  }
+  ol.ledger li p{margin:0; font-size:14px; color:var(--ink);}
+  ol.ledger li p b{color:var(--seal);}
+
+  /* ---------- ACTION MATRIX ---------- */
+  .matrix{width:100%; border-collapse:collapse; font-size:13px;}
+  .matrix th{position:static;}
+  .matrix th, .matrix td{border:1px solid var(--line); padding:12px; vertical-align:top;}
+  .matrix th{background:var(--ink); color:var(--paper);}
+  .matrix td.role{font-family:var(--serif); font-weight:700; background:var(--brass-tint);}
+
+  footer{
+    margin-top:50px; padding:28px 0 60px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--ink-soft);
+  }
+  footer a{color:var(--seal); text-decoration:none; border-bottom:1px solid var(--seal-tint);}
+  footer a:hover{text-decoration:underline;}
+  .foot-flex{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap;}
+
+  ::selection{background:var(--seal-tint); color:var(--seal);}
+
+  /* ---------- MAP ---------- */
+  .map-note{font-size:12.5px; color:var(--ink-soft); margin:0 0 14px; background:var(--brass-tint); border-left:3px solid var(--brass); padding:10px 14px;}
+  .map-two-col{display:grid; grid-template-columns:1fr 1.4fr; gap:18px;}
+  @media(max-width:900px){.map-two-col{grid-template-columns:1fr;}}
+  .map-embed-frame{position:relative; width:100%; height:420px; border:1px solid var(--line); overflow:hidden; background:var(--panel);}
+  .map-embed-frame iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
+  #leafletMap{width:100%; height:420px; border:1px solid var(--line); background:var(--panel);}
+  .map-legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--ink-soft);}
+  .map-legend span{display:inline-flex; align-items:center; gap:6px;}
+  .map-legend i{width:11px; height:11px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.25);}
+  .leaflet-popup-content{font-family:var(--sans); font-size:12.5px; min-width:190px;}
+  .leaflet-popup-content b{font-family:var(--serif); font-size:14px; display:block; margin-bottom:4px; color:var(--ink);}
+  .leaflet-popup-content a{font-size:11.5px;}
+  .map-fallback-list{font-size:13px;}
+  .map-fallback-list a{text-decoration:none;}
+  .map-fallback-list a:hover{text-decoration:underline;}
+
+  /* ==================================================================
+     MOBILE — tuned for phones/small tablets. Appended last so it wins
+     the cascade over the wider (900px/700px) breakpoints above at
+     narrower widths.
+     ================================================================== */
+  html{-webkit-text-size-adjust:100%;}
+  body{overflow-x:hidden;}
+
+  @media(max-width:760px){
+    .wrap{padding:0 16px;}
+    .masthead-inner{padding:26px 16px 22px;}
+    .eyebrow{font-size:10.5px; letter-spacing:.1em;}
+    h1{font-size:clamp(22px,7vw,30px);}
+    .sub{font-size:13.5px;}
+    /* Decorative seal overlaps title text on narrow screens — hide it */
+    .seal-badge{display:none;}
+
+    .tabs-inner{padding:0 12px; gap:0;}
+    .tabs-inner button{padding:12px 11px; font-size:12px;}
+    th{top:45px;} /* matches the shorter mobile nav-bar height */
+
+    section{padding:30px 0 6px;}
+    .section-head{margin-bottom:16px;}
+    h2{font-size:21px;}
+    .lede{font-size:13.5px;}
+    .index{font-size:11px;}
+
+    .panel{padding:15px;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .kpi{padding:14px 12px;}
+    .kpi .num{font-size:26px;}
+    .kpi .lbl{font-size:10.5px;}
+
+    .chart-box{height:280px;}
+    .chart-box.short{height:230px;}
+
+    table{font-size:12px;}
+    th, td{padding:8px 8px;}
+    .panel[style*="overflow-x"]{-webkit-overflow-scrolling:touch;}
+
+    .hotspot-grid{grid-template-columns:1fr 1fr; gap:10px;}
+    .hotspot-card{padding:13px;}
+    .chip{padding:5px 11px;} /* larger tap target */
+
+    .spot-grid{grid-template-columns:repeat(2,1fr); gap:12px;}
+
+    .subtab-row{flex-wrap:wrap;}
+    .subtab-row button{padding:10px 13px; font-size:12px;}
+    .stat-line{gap:16px;}
+
+    ol.ledger li{grid-template-columns:30px 1fr; gap:10px; padding:11px 0;}
+
+    .matrix th, .matrix td{padding:9px; font-size:12.5px;}
+
+    .map-embed-frame, #leafletMap{height:260px;}
+    .map-note{font-size:11.5px; padding:9px 11px;}
+    .map-legend{font-size:11px; gap:12px;}
+
+    .foot-flex{flex-direction:column; gap:10px;}
+  }
+
+  @media(max-width:420px){
+    .kpi-grid{grid-template-columns:1fr 1fr;}
+    .hotspot-grid{grid-template-columns:1fr;}
+    .spot-grid{grid-template-columns:1fr 1fr;}
+    .tabs-inner button{padding:11px 9px; font-size:11.5px;}
+  }
+
+  /* Comfortable tap targets on touch devices, regardless of screen width */
+  @media(hover:none) and (pointer:coarse){
+    .tabs-inner button{padding-top:14px; padding-bottom:14px;}
+    tbody tr{min-height:44px;}
+    td, th{padding-top:10px; padding-bottom:10px;}
+    .chip{padding:6px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <p class="eyebrow">Dumka District · eCourts Case-Status Records, 2023–2025</p>
+    <h1>District Child Protection Dashboard</h1>
+    <p class="sub">Consolidated review of 161 unique cases across 16 police stations, drawn from the Dumka District Court's public eCourts case-status portal — prepared for the Deputy Commissioner and Superintendent of Police, Dumka. Companion to the Version 1 analytical report and Power BI export workbook.</p>
+    <div class="seal-badge">
+      <svg viewBox="0 0 104 104">
+        <circle class="core" cx="52" cy="52" r="46"></circle>
+        <circle class="core" cx="52" cy="52" r="39"></circle>
+        <path id="circlePath" d="M 52,52 m -42,0 a 42,42 0 1,1 84,0 a 42,42 0 1,1 -84,0" fill="none"></path>
+        <text><textPath href="#circlePath" startOffset="2%">DISTRICT REVIEW · VERSION 1 · DUMKA</textPath></text>
+        <text class="num" x="52" y="58" text-anchor="middle">V1</text>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tabs-inner" id="navRow">
+    <button data-goto="overview" class="active">Overview</button>
+    <button data-goto="burden">Station Burden</button>
+    <button data-goto="risk">Risk &amp; RAG</button>
+    <button data-goto="hotspots">Hotspots</button>
+    <button data-goto="trend">Trend</button>
+    <button data-goto="categories">Categories</button>
+    <button data-goto="pendency">Pendency</button>
+    <button data-goto="insights">Insights</button>
+    <button data-goto="matrix">Action Matrix</button>
+    <button data-goto="map">District Map</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section id="overview">
+    <div class="section-head">
+      <p class="index">00 / OVERVIEW</p>
+      <h2>District Snapshot</h2>
+      <p class="lede">All figures below are computed on the 161 verified unique cases (326 clean raw rows, zero true duplicates) extracted from the Dumka District Court's eCourts case-status search (case types under the POCSO Act and related child-protection statutes, 2023–2025). Registration numbers reset per station and are not a district-wide key — uniqueness was confirmed via Filing No. + Reg. No. + Police Station. As court filings, these are cases that reached the judicial system and may undercount incidents still at FIR/investigation stage.</p>
+    </div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </section>
+
+  <section id="burden">
+    <div class="section-head">
+      <p class="index">01 / STATION BURDEN</p>
+      <h2>Police-Station-wise Burden</h2>
+      <p class="lede">Sorted by total case count. Bars are coloured by the composite Risk RAG rating (Section 03). Click any bar's station name in the table below, or a bar itself, to open the station spotlight.</p>
+    </div>
+    <div class="panel"><div class="chart-box"><canvas id="chartBurden"></canvas></div></div>
+  </section>
+
+  <section id="risk">
+    <div class="section-head">
+      <p class="index">02 / RISK &amp; RAG</p>
+      <h2>Risk Score &amp; RAG Classification</h2>
+      <p class="lede">Composite of case volume (25%), POCSO share (30%), serious-crime share (30%), overdue-hearing share (10%) and 2023→2025 trend (5%), scored as z-values against the district mean/σ. RED &gt; mean + 0.5σ · GREEN &lt; mean − 0.5σ. Click a column to sort; click a row to inspect.</p>
+    </div>
+    <div class="panel" style="overflow-x:auto;">
+      <table id="riskTable">
+        <thead>
+          <tr>
+            <th data-key="Rank" class="num">Rank</th>
+            <th data-key="PS">Police Station</th>
+            <th data-key="Total_Cases" class="num">Cases</th>
+            <th data-key="POCSO_Share_%" class="num">POCSO %</th>
+            <th data-key="Serious_Share_%" class="num">Serious %</th>
+            <th data-key="Overdue_Share_%" class="num">Overdue %</th>
+            <th data-key="Trend_2023_to_2025" class="num">Trend '23→'25</th>
+            <th data-key="RiskScore" class="num sorted">Risk Score</th>
+            <th data-key="RAG">RAG</th>
+            <th data-key="HotspotType">Hotspot Type</th>
+          </tr>
+        </thead>
+        <tbody id="riskBody"></tbody>
+      </table>
+    </div>
+    <div class="panel" id="spotlight">
+      <p class="index" style="margin-bottom:6px;">STATION SPOTLIGHT</p>
+      <h3 id="spotName">Select a station</h3>
+      <p class="sub" id="spotSub">Click any row in the table above, or a chip in the Hotspots section, to see full station-level detail here.</p>
+      <div class="spot-grid" id="spotGrid"></div>
+    </div>
+  </section>
+
+  <section id="hotspots">
+    <div class="section-head">
+      <p class="index">03 / HOTSPOTS</p>
+      <h2>Hotspot Identification</h2>
+      <p class="lede">Classification blends case-volume level with 2023→2025 trend direction and POCSO/serious-crime severity mix. Click a station chip to open its spotlight above.</p>
+    </div>
+    <div class="hotspot-grid" id="hotspotGrid"></div>
+  </section>
+
+  <section id="trend">
+    <div class="section-head">
+      <p class="index">04 / TREND</p>
+      <h2>Year-wise (YoY) Trend</h2>
+      <p class="lede">2022 holds a single legacy entry and is excluded from the trend line. The registered-case count falls ~32% from 2023 to 2025 — read alongside the sharper Kidnapping/Missing drop (29→22→4), this should be verified against FIR and DCPU Missing-Children registers before being read as a genuine decline rather than a 2025 reporting-completeness gap.</p>
+    </div>
+    <div class="panel"><div class="chart-box"><canvas id="chartTrend"></canvas></div></div>
+  </section>
+
+  <section id="categories">
+    <div class="section-head">
+      <p class="index">05 / CATEGORY DASHBOARDS</p>
+      <h2>POCSO · Kidnapping/Missing · Serious Crime</h2>
+      <p class="lede">Switch categories below. Each view shows the district summary line and the police-station breakdown, ranked.</p>
+    </div>
+    <div class="panel">
+      <div class="subtab-row" id="catTabs">
+        <button data-cat="pocso" class="active">POCSO</button>
+        <button data-cat="kidnap">Kidnapping / Missing</button>
+        <button data-cat="serious">Serious Crime</button>
+      </div>
+      <div class="stat-line" id="catStats"></div>
+      <div class="chart-box short"><canvas id="chartCategory"></canvas></div>
+    </div>
+  </section>
+
+  <section id="pendency">
+    <div class="section-head">
+      <p class="index">06 / PENDENCY &amp; AGEING</p>
+      <h2>Pendency &amp; Ageing Analysis</h2>
+      <p class="lede">Median case age is 841 days (≈2 years 4 months). 60.2% of cases (97 of 161) are more than two years old; 68.3% (110 of 161) carry an overdue next-hearing date.</p>
+    </div>
+    <div class="two-col">
+      <div class="panel"><div class="chart-box"><canvas id="chartAgePS"></canvas></div></div>
+      <div class="panel"><div class="chart-box"><canvas id="chartAgeDonut"></canvas></div></div>
+    </div>
+  </section>
+
+  <section id="insights">
+    <div class="section-head">
+      <p class="index">07 / EXECUTIVE INSIGHTS</p>
+      <h2>Ten Strongest Findings</h2>
+    </div>
+    <div class="panel">
+      <ol class="ledger" id="insightList"></ol>
+    </div>
+  </section>
+
+  <section id="matrix">
+    <div class="section-head">
+      <p class="index">08 / ACTION MATRIX</p>
+      <h2>District Action Matrix</h2>
+      <p class="lede">Police, DCPU, CWC and Prosecution responsibilities across immediate, medium-term and structural horizons.</p>
+    </div>
+    <div class="panel" style="overflow-x:auto;">
+      <table class="matrix">
+        <thead><tr><th>Stakeholder</th><th>Immediate (0–3 mo)</th><th>Medium-term (3–9 mo)</th><th>Structural (9+ mo)</th></tr></thead>
+        <tbody id="matrixBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="map">
+    <div class="section-head">
+      <p class="index">09 / DISTRICT MAP</p>
+      <h2>Police-Station Map — Dumka District</h2>
+      <p class="lede">Left: Google Maps view of Dumka district for geographic orientation. Right: the 15 mapped stations, plotted at their block/town headquarters and colour-coded by RAG rating — click a marker for station detail, or "Open in Google Maps" for directions.</p>
+    </div>
+    <p class="map-note">Station markers are placed at each police station's block/town headquarters (sourced from public administrative records), not the exact station building — treat positions as approximate for briefing purposes. "PS Not Recorded" (8 cases with no station on file) cannot be mapped.</p>
+    <div class="panel">
+      <div class="map-two-col">
+        <div>
+          <div class="map-embed-frame">
+            <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+              src="https://www.google.com/maps?q=Dumka+District,+Jharkhand,+India&output=embed"
+              title="Google Map of Dumka District"></iframe>
+          </div>
+        </div>
+        <div>
+          <div id="leafletMap"></div>
+          <div class="map-legend" id="mapLegend"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-flex">
+      <div>Dumka District Child Protection Case Review · Version 1 — District Administration Pitch.<br>Companion files: <i>Dumka_Child_Protection_Analysis.xlsx</i> (Power BI export) and <i>Dumka_Analysis_Report.md</i> (full narrative).</div>
+      <div>Source: <a href="https://dumka.dcourts.gov.in/case-status-search-by-case-type/" target="_blank" rel="noopener">Dumka District Court, eCourts case-status search</a> — 161 unique cases audited from 326 clean raw rows, period 2023–2025.</div>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+const DATA = {"totals": {"unique_cases": 161, "raw_rows": 326, "pocso": 158, "kidnap": 55, "murder": 5, "attempt_murder": 4, "rape": 73, "serious": 99, "over_2yr": 97, "overdue": 110, "median_age_days": 841, "pocso_overdue": 109, "pocso_over2yr": 94, "kidnap_overdue": 46}, "ps": [{"Rank": 1, "PS": "RAMGARH", "Total_Cases": 18, "POCSO_Cases": 18, "Kidnap_Missing_Cases": 7, "Murder_Cases": 1, "Rape_Cases": 9, "Serious_Crime_Cases": 13, "Overdue_Hearings": 13, "Cases_Over_2yr": 14, "POCSO_Share_%": 100.0, "Serious_Share_%": 72.2, "Overdue_Share_%": 72.2, "DistrictShare_%": 11.2, "Trend_2023_to_2025": -8, "RiskScore": 0.52, "RAG": "RED", "HotspotType": "PERSISTENT"}, {"Rank": 2, "PS": "DUMKA MUFASSIL", "Total_Cases": 19, "POCSO_Cases": 19, "Kidnap_Missing_Cases": 5, "Murder_Cases": 0, "Rape_Cases": 8, "Serious_Crime_Cases": 10, "Overdue_Hearings": 12, "Cases_Over_2yr": 8, "POCSO_Share_%": 100.0, "Serious_Share_%": 52.6, "Overdue_Share_%": 63.2, "DistrictShare_%": 11.8, "Trend_2023_to_2025": 4, "RiskScore": 0.5, "RAG": "RED", "HotspotType": "EMERGING"}, {"Rank": 3, "PS": "SARAIYA HAT", "Total_Cases": 13, "POCSO_Cases": 13, "Kidnap_Missing_Cases": 6, "Murder_Cases": 0, "Rape_Cases": 5, "Serious_Crime_Cases": 9, "Overdue_Hearings": 10, "Cases_Over_2yr": 8, "POCSO_Share_%": 100.0, "Serious_Share_%": 69.2, "Overdue_Share_%": 76.9, "DistrictShare_%": 8.1, "Trend_2023_to_2025": -4, "RiskScore": 0.37, "RAG": "RED", "HotspotType": "PERSISTENT"}, {"Rank": 4, "PS": "MASLIA", "Total_Cases": 13, "POCSO_Cases": 13, "Kidnap_Missing_Cases": 4, "Murder_Cases": 0, "Rape_Cases": 5, "Serious_Crime_Cases": 7, "Overdue_Hearings": 11, "Cases_Over_2yr": 8, "POCSO_Share_%": 100.0, "Serious_Share_%": 53.8, "Overdue_Share_%": 84.6, "DistrictShare_%": 8.1, "Trend_2023_to_2025": -1, "RiskScore": 0.26, "RAG": "RED", "HotspotType": "PERSISTENT"}, {"Rank": 5, "PS": "RANESHWAR", "Total_Cases": 5, "POCSO_Cases": 5, "Kidnap_Missing_Cases": 2, "Murder_Cases": 0, "Rape_Cases": 4, "Serious_Crime_Cases": 4, "Overdue_Hearings": 4, "Cases_Over_2yr": 3, "POCSO_Share_%": 100.0, "Serious_Share_%": 80.0, "Overdue_Share_%": 80.0, "DistrictShare_%": 3.1, "Trend_2023_to_2025": 0, "RiskScore": 0.26, "RAG": "RED", "HotspotType": "SILENT"}, {"Rank": 6, "PS": "TALJHARI", "Total_Cases": 13, "POCSO_Cases": 12, "Kidnap_Missing_Cases": 7, "Murder_Cases": 2, "Rape_Cases": 9, "Serious_Crime_Cases": 12, "Overdue_Hearings": 9, "Cases_Over_2yr": 10, "POCSO_Share_%": 92.3, "Serious_Share_%": 92.3, "Overdue_Share_%": 69.2, "DistrictShare_%": 8.1, "Trend_2023_to_2025": -3, "RiskScore": 0.2, "RAG": "AMBER", "HotspotType": "PERSISTENT"}, {"Rank": 7, "PS": "JAMA", "Total_Cases": 10, "POCSO_Cases": 10, "Kidnap_Missing_Cases": 5, "Murder_Cases": 0, "Rape_Cases": 5, "Serious_Crime_Cases": 6, "Overdue_Hearings": 9, "Cases_Over_2yr": 8, "POCSO_Share_%": 100.0, "Serious_Share_%": 60.0, "Overdue_Share_%": 90.0, "DistrictShare_%": 6.2, "Trend_2023_to_2025": -5, "RiskScore": 0.17, "RAG": "AMBER", "HotspotType": "PERSISTENT"}, {"Rank": 8, "PS": "SHIKARIPARA", "Total_Cases": 17, "POCSO_Cases": 17, "Kidnap_Missing_Cases": 2, "Murder_Cases": 0, "Rape_Cases": 6, "Serious_Crime_Cases": 7, "Overdue_Hearings": 9, "Cases_Over_2yr": 8, "POCSO_Share_%": 100.0, "Serious_Share_%": 41.2, "Overdue_Share_%": 52.9, "DistrictShare_%": 10.6, "Trend_2023_to_2025": 0, "RiskScore": 0.15, "RAG": "AMBER", "HotspotType": "PERSISTENT"}, {"Rank": 9, "PS": "DUMKA TOWN", "Total_Cases": 19, "POCSO_Cases": 18, "Kidnap_Missing_Cases": 5, "Murder_Cases": 1, "Rape_Cases": 4, "Serious_Crime_Cases": 9, "Overdue_Hearings": 14, "Cases_Over_2yr": 10, "POCSO_Share_%": 94.7, "Serious_Share_%": 47.4, "Overdue_Share_%": 73.7, "DistrictShare_%": 11.8, "Trend_2023_to_2025": -1, "RiskScore": 0.08, "RAG": "AMBER", "HotspotType": "PERSISTENT"}, {"Rank": 10, "PS": "TONGRA", "Total_Cases": 4, "POCSO_Cases": 4, "Kidnap_Missing_Cases": 1, "Murder_Cases": 0, "Rape_Cases": 3, "Serious_Crime_Cases": 3, "Overdue_Hearings": 2, "Cases_Over_2yr": 2, "POCSO_Share_%": 100.0, "Serious_Share_%": 75.0, "Overdue_Share_%": 50.0, "DistrictShare_%": 2.5, "Trend_2023_to_2025": 0, "RiskScore": 0.02, "RAG": "AMBER", "HotspotType": "SILENT"}, {"Rank": 11, "PS": "KATHIKUND", "Total_Cases": 4, "POCSO_Cases": 4, "Kidnap_Missing_Cases": 1, "Murder_Cases": 0, "Rape_Cases": 3, "Serious_Crime_Cases": 3, "Overdue_Hearings": 2, "Cases_Over_2yr": 3, "POCSO_Share_%": 100.0, "Serious_Share_%": 75.0, "Overdue_Share_%": 50.0, "DistrictShare_%": 2.5, "Trend_2023_to_2025": -1, "RiskScore": 0.0, "RAG": "AMBER", "HotspotType": "SILENT"}, {"Rank": 12, "PS": "GOPIKANDAR", "Total_Cases": 5, "POCSO_Cases": 5, "Kidnap_Missing_Cases": 1, "Murder_Cases": 0, "Rape_Cases": 2, "Serious_Crime_Cases": 2, "Overdue_Hearings": 3, "Cases_Over_2yr": 2, "POCSO_Share_%": 100.0, "Serious_Share_%": 40.0, "Overdue_Share_%": 60.0, "DistrictShare_%": 3.1, "Trend_2023_to_2025": 1, "RiskScore": -0.31, "RAG": "GREEN", "HotspotType": "EMERGING"}, {"Rank": 13, "PS": "JARMUNDI", "Total_Cases": 7, "POCSO_Cases": 7, "Kidnap_Missing_Cases": 2, "Murder_Cases": 1, "Rape_Cases": 1, "Serious_Crime_Cases": 3, "Overdue_Hearings": 2, "Cases_Over_2yr": 4, "POCSO_Share_%": 100.0, "Serious_Share_%": 42.9, "Overdue_Share_%": 28.6, "DistrictShare_%": 4.3, "Trend_2023_to_2025": 1, "RiskScore": -0.33, "RAG": "GREEN", "HotspotType": "EMERGING"}, {"Rank": 14, "PS": "HANSDIHA", "Total_Cases": 5, "POCSO_Cases": 4, "Kidnap_Missing_Cases": 4, "Murder_Cases": 0, "Rape_Cases": 3, "Serious_Crime_Cases": 5, "Overdue_Hearings": 4, "Cases_Over_2yr": 4, "POCSO_Share_%": 80.0, "Serious_Share_%": 100.0, "Overdue_Share_%": 80.0, "DistrictShare_%": 3.1, "Trend_2023_to_2025": -1, "RiskScore": -0.65, "RAG": "GREEN", "HotspotType": "SILENT"}, {"Rank": 15, "PS": "DUMKA MAHILA", "Total_Cases": 1, "POCSO_Cases": 1, "Kidnap_Missing_Cases": 0, "Murder_Cases": 0, "Rape_Cases": 0, "Serious_Crime_Cases": 0, "Overdue_Hearings": 0, "Cases_Over_2yr": 0, "POCSO_Share_%": 100.0, "Serious_Share_%": 0.0, "Overdue_Share_%": 0.0, "DistrictShare_%": 0.6, "Trend_2023_to_2025": 1, "RiskScore": -1.24, "RAG": "GREEN", "HotspotType": "WATCH"}], "ps_not_recorded": {"Total_Cases": 8, "POCSO_Cases": 8}, "year": [{"Year": 2022, "Total_Cases": 1, "POCSO_Cases": 1, "Kidnap_Missing": 0, "Serious_Crime": 1, "YoY_Change_%": null}, {"Year": 2023, "Total_Cases": 63, "POCSO_Cases": 60, "Kidnap_Missing": 29, "Serious_Crime": 51, "YoY_Change_%": 6200.0}, {"Year": 2024, "Total_Cases": 54, "POCSO_Cases": 54, "Kidnap_Missing": 22, "Serious_Crime": 32, "YoY_Change_%": -14.3}, {"Year": 2025, "Total_Cases": 43, "POCSO_Cases": 43, "Kidnap_Missing": 4, "Serious_Crime": 15, "YoY_Change_%": -20.4}], "psyr": [{"PS": "DUMKA MAHILA", "2022": 0, "2023": 0, "2024": 0, "2025": 1}, {"PS": "DUMKA MUFASSIL", "2022": 0, "2023": 5, "2024": 5, "2025": 9}, {"PS": "DUMKA TOWN", "2022": 0, "2023": 7, "2024": 6, "2025": 6}, {"PS": "GOPIKANDAR", "2022": 0, "2023": 1, "2024": 2, "2025": 2}, {"PS": "HANSDIHA", "2022": 0, "2023": 2, "2024": 2, "2025": 1}, {"PS": "JAMA", "2022": 0, "2023": 5, "2024": 5, "2025": 0}, {"PS": "JARMUNDI", "2022": 0, "2023": 2, "2024": 2, "2025": 3}, {"PS": "KATHIKUND", "2022": 0, "2023": 2, "2024": 1, "2025": 1}, {"PS": "MASLIA", "2022": 0, "2023": 3, "2024": 8, "2025": 2}, {"PS": "PS NOT RECORDED", "2022": 0, "2023": 5, "2024": 1, "2025": 2}, {"PS": "RAMGARH", "2022": 1, "2023": 10, "2024": 5, "2025": 2}, {"PS": "RANESHWAR", "2022": 0, "2023": 2, "2024": 1, "2025": 2}, {"PS": "SARAIYA HAT", "2022": 0, "2023": 6, "2024": 5, "2025": 2}, {"PS": "SHIKARIPARA", "2022": 0, "2023": 6, "2024": 5, "2025": 6}, {"PS": "TALJHARI", "2022": 0, "2023": 5, "2024": 6, "2025": 2}, {"PS": "TONGRA", "2022": 0, "2023": 2, "2024": 0, "2025": 2}], "ageing": {"0-6 months": 0, "6-12 months": 25, "1-2 years": 39, ">2 years": 97}, "age_ps": [{"PS": "JAMA", "pct_over_2yr": 80.0}, {"PS": "HANSDIHA", "pct_over_2yr": 80.0}, {"PS": "RAMGARH", "pct_over_2yr": 77.8}, {"PS": "TALJHARI", "pct_over_2yr": 76.9}, {"PS": "KATHIKUND", "pct_over_2yr": 75.0}, {"PS": "PS NOT RECORDED", "pct_over_2yr": 62.5}, {"PS": "MASLIA", "pct_over_2yr": 61.5}, {"PS": "SARAIYA HAT", "pct_over_2yr": 61.5}, {"PS": "RANESHWAR", "pct_over_2yr": 60.0}, {"PS": "JARMUNDI", "pct_over_2yr": 57.1}, {"PS": "DUMKA TOWN", "pct_over_2yr": 52.6}, {"PS": "TONGRA", "pct_over_2yr": 50.0}, {"PS": "SHIKARIPARA", "pct_over_2yr": 47.1}, {"PS": "DUMKA MUFASSIL", "pct_over_2yr": 42.1}, {"PS": "GOPIKANDAR", "pct_over_2yr": 40.0}, {"PS": "DUMKA MAHILA", "pct_over_2yr": 0.0}], "pocso_by_ps": [{"PS": "DUMKA MUFASSIL", "n": 19}, {"PS": "DUMKA TOWN", "n": 18}, {"PS": "RAMGARH", "n": 18}, {"PS": "SHIKARIPARA", "n": 17}, {"PS": "MASLIA", "n": 13}, {"PS": "SARAIYA HAT", "n": 13}, {"PS": "TALJHARI", "n": 12}, {"PS": "JAMA", "n": 10}, {"PS": "PS NOT RECORDED", "n": 8}, {"PS": "JARMUNDI", "n": 7}, {"PS": "RANESHWAR", "n": 5}, {"PS": "GOPIKANDAR", "n": 5}, {"PS": "HANSDIHA", "n": 4}, {"PS": "KATHIKUND", "n": 4}, {"PS": "TONGRA", "n": 4}, {"PS": "DUMKA MAHILA", "n": 1}], "kidnap_by_ps": [{"PS": "RAMGARH", "n": 7}, {"PS": "TALJHARI", "n": 7}, {"PS": "SARAIYA HAT", "n": 6}, {"PS": "DUMKA TOWN", "n": 5}, {"PS": "DUMKA MUFASSIL", "n": 5}, {"PS": "JAMA", "n": 5}, {"PS": "HANSDIHA", "n": 4}, {"PS": "MASLIA", "n": 4}, {"PS": "PS NOT RECORDED", "n": 3}, {"PS": "JARMUNDI", "n": 2}, {"PS": "RANESHWAR", "n": 2}, {"PS": "SHIKARIPARA", "n": 2}, {"PS": "GOPIKANDAR", "n": 1}, {"PS": "KATHIKUND", "n": 1}, {"PS": "TONGRA", "n": 1}], "serious_by_ps": [{"PS": "RAMGARH", "n": 13}, {"PS": "TALJHARI", "n": 12}, {"PS": "DUMKA MUFASSIL", "n": 10}, {"PS": "DUMKA TOWN", "n": 9}, {"PS": "SARAIYA HAT", "n": 9}, {"PS": "MASLIA", "n": 7}, {"PS": "SHIKARIPARA", "n": 7}, {"PS": "JAMA", "n": 6}, {"PS": "PS NOT RECORDED", "n": 6}, {"PS": "HANSDIHA", "n": 5}, {"PS": "RANESHWAR", "n": 4}, {"PS": "JARMUNDI", "n": 3}, {"PS": "KATHIKUND", "n": 3}, {"PS": "TONGRA", "n": 3}, {"PS": "GOPIKANDAR", "n": 2}]}
+;
+
+const RAG_COLOR = {RED:'#B8362A', AMBER:'#B4820F', GREEN:'#2E6E4E'};
+const INK = '#1B2A3A', BRASS = '#9C7C3C', SEAL = '#7A1F2B', LINE='#D8D1BE', INKSOFT='#425163';
+
+function applyChartDefaults(){
+  if(typeof Chart === 'undefined') return;
+  Chart.defaults.font.family = "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
+  Chart.defaults.color = INKSOFT;
+  Chart.defaults.borderColor = LINE;
+}
+applyChartDefaults();
+
+function chartFallback(canvas, label){
+  const box = canvas.closest('.chart-box');
+  if(box) box.innerHTML = `<p style="color:var(--ink-soft); font-size:13px; padding:16px 0;">Chart library did not load — ${label} data is still available in the tables above/below.</p>`;
+}
+
+/**
+ * Runs renderFn() once Chart.js is confirmed available. If Chart.js isn't
+ * ready yet (e.g. the primary CDN is still loading, or blocked and the
+ * jsdelivr fallback is being fetched), it waits for the 'chartjs-ready' /
+ * 'chartjs-failed' events dispatched by the <script> tags in <head>, with a
+ * final timeout so the section never hangs waiting indefinitely.
+ */
+function withChart(renderFn, canvasEl, label){
+  if (typeof Chart !== 'undefined'){
+    try{ applyChartDefaults(); renderFn(); }
+    catch(e){ console.error('Dashboard chart error:', e); chartFallback(canvasEl, label); }
+    return;
+  }
+  let done = false;
+  const timer = setTimeout(()=>finish(typeof Chart === 'undefined'), 6000);
+  function onReady(){ finish(false); }
+  function onFailed(){ finish(true); }
+  function finish(useFallback){
+    if(done) return; done = true;
+    clearTimeout(timer);
+    document.removeEventListener('chartjs-ready', onReady);
+    document.removeEventListener('chartjs-failed', onFailed);
+    if(useFallback){ chartFallback(canvasEl, label); return; }
+    try{ applyChartDefaults(); renderFn(); }
+    catch(e){ console.error('Dashboard chart error:', e); chartFallback(canvasEl, label); }
+  }
+  document.addEventListener('chartjs-ready', onReady);
+  document.addEventListener('chartjs-failed', onFailed);
+}
+
+/* ---------------- NAV ---------------- */
+document.getElementById('navRow').addEventListener('click', e=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  document.querySelectorAll('#navRow button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.goto).scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+/* ---------------- KPI STRIP ---------------- */
+const t = DATA.totals;
+const kpis = [
+  {n:t.unique_cases, l:'Unique Cases (161 of 326 rows)'},
+  {n:(t.over_2yr/t.unique_cases*100).toFixed(1)+'%', l:'Cases Pending > 2 Years', flag:true},
+  {n:(t.overdue/t.unique_cases*100).toFixed(1)+'%', l:'Overdue Next Hearing', flag:true},
+  {n:(t.pocso/t.unique_cases*100).toFixed(1)+'%', l:'POCSO Share of Caseload'},
+  {n:(t.serious/t.unique_cases*100).toFixed(1)+'%', l:'Serious Crime Overlap', flag:true},
+];
+document.getElementById('kpiGrid').innerHTML = kpis.map(k=>`
+  <div class="kpi ${k.flag?'flag':''}"><div class="num">${k.n}</div><div class="lbl">${k.l}</div></div>
+`).join('');
+
+/* ---------------- BURDEN CHART ---------------- */
+const psSorted = [...DATA.ps].sort((a,b)=>b.Total_Cases - a.Total_Cases);
+const burdenCtx = document.getElementById('chartBurden');
+let burdenChart = null;
+withChart(() => {
+  burdenChart = new Chart(burdenCtx, {
+    type:'bar',
+    data:{
+      labels: psSorted.map(p=>p.PS),
+      datasets:[{
+        label:'Total cases',
+        data: psSorted.map(p=>p.Total_Cases),
+        backgroundColor: psSorted.map(p=>RAG_COLOR[p.RAG]),
+        borderRadius:2, maxBarThickness:26
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{afterLabel:(c)=>{
+        const p = psSorted[c.dataIndex];
+        return `RAG: ${p.RAG}  ·  Risk score: ${p.RiskScore}  ·  Hotspot: ${p.HotspotType}`;
+      }}}},
+      scales:{x:{grid:{color:LINE}}, y:{grid:{display:false}}},
+      onClick:(evt, els)=>{ if(els.length){ selectPS(psSorted[els[0].index].PS); } }
+    }
+  });
+}, burdenCtx, 'Station burden');
+
+/* ---------------- RISK TABLE ---------------- */
+let sortKey = 'RiskScore', sortDir = 'desc';
+function renderTable(){
+  const rows = [...DATA.ps].sort((a,b)=>{
+    let av=a[sortKey], bv=b[sortKey];
+    if(typeof av === 'string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+    if(av<bv) return sortDir==='asc'?-1:1;
+    if(av>bv) return sortDir==='asc'?1:-1;
+    return 0;
+  });
+  document.getElementById('riskBody').innerHTML = rows.map(p=>`
+    <tr data-ps="${p.PS}">
+      <td class="num">${p.Rank}</td>
+      <td>${p.PS}</td>
+      <td class="num">${p.Total_Cases}</td>
+      <td class="num">${p['POCSO_Share_%']}</td>
+      <td class="num">${p['Serious_Share_%']}</td>
+      <td class="num">${p['Overdue_Share_%']}</td>
+      <td class="num">${p.Trend_2023_to_2025>0?'+':''}${p.Trend_2023_to_2025}</td>
+      <td class="num">${p.RiskScore}</td>
+      <td><span class="badge ${p.RAG}">${p.RAG}</span></td>
+      <td><span class="badge type">${p.HotspotType}</span></td>
+    </tr>
+  `).join('');
+  document.querySelectorAll('#riskTable tbody tr').forEach(tr=>{
+    tr.addEventListener('click', ()=>selectPS(tr.dataset.ps));
+  });
+  document.querySelectorAll('#riskTable th').forEach(th=>{
+    th.classList.toggle('sorted', th.dataset.key===sortKey);
+    th.classList.toggle('asc', th.dataset.key===sortKey && sortDir==='asc');
+  });
+}
+document.querySelectorAll('#riskTable th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(sortKey===key){ sortDir = sortDir==='asc'?'desc':'asc'; }
+    else { sortKey = key; sortDir = 'desc'; }
+    renderTable();
+  });
+});
+renderTable();
+
+/* ---------------- SPOTLIGHT ---------------- */
+let selectedPS = null;
+function selectPS(ps){
+  selectedPS = ps;
+  const p = DATA.ps.find(x=>x.PS===ps);
+  document.querySelectorAll('#riskTable tbody tr').forEach(tr=>tr.classList.toggle('selected', tr.dataset.ps===ps));
+  if(!p){ return; }
+  document.getElementById('spotName').textContent = p.PS;
+  document.getElementById('spotSub').textContent =
+    `Rank ${p.Rank} of 15 scored stations · District share ${p['DistrictShare_%']}% · RAG ${p.RAG} · Hotspot type: ${p.HotspotType}`;
+  document.getElementById('spotGrid').innerHTML = `
+    <div><div class="n">${p.Total_Cases}</div><div class="l">Total Cases</div></div>
+    <div><div class="n">${p.POCSO_Cases}</div><div class="l">POCSO Cases</div></div>
+    <div><div class="n">${p.Kidnap_Missing_Cases}</div><div class="l">Kidnap / Missing</div></div>
+    <div><div class="n">${p.Serious_Crime_Cases}</div><div class="l">Serious Crime</div></div>
+    <div><div class="n">${p.Overdue_Hearings}</div><div class="l">Overdue Hearings</div></div>
+    <div><div class="n">${p.Cases_Over_2yr}</div><div class="l">Cases &gt; 2 Years Old</div></div>
+    <div><div class="n">${p.Trend_2023_to_2025>0?'+':''}${p.Trend_2023_to_2025}</div><div class="l">Trend 2023→2025</div></div>
+    <div><div class="n">${p.RiskScore}</div><div class="l">Composite Risk Score</div></div>
+  `;
+  document.getElementById('spotlight').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---------------- HOTSPOTS ---------------- */
+const hotspotDefs = [
+  {key:'PERSISTENT', title:'Persistent', desc:'High, sustained volume — chronic burden needing standing infrastructure.'},
+  {key:'EMERGING', title:'Emerging', desc:'Rising 2023→2025 trend — early-warning stations for pre-emptive resourcing.'},
+  {key:'SILENT', title:'Silent', desc:'Low volume, high-severity mix — a signature of likely under-reporting.'},
+  {key:'WATCH', title:'Watch', desc:'Insufficient case volume for classification — monitor only.'},
+];
+document.getElementById('hotspotGrid').innerHTML = hotspotDefs.map(h=>{
+  const members = DATA.ps.filter(p=>p.HotspotType===h.key);
+  return `<div class="hotspot-card">
+    <h4>${h.title}</h4>
+    <p>${h.desc}</p>
+    <div class="chip-row">${members.map(m=>`<span class="chip" data-ps="${m.PS}">${m.PS}</span>`).join('')}</div>
+  </div>`;
+}).join('');
+document.getElementById('hotspots').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  document.getElementById('risk').scrollIntoView({behavior:'smooth'});
+  setTimeout(()=>selectPS(chip.dataset.ps), 350);
+});
+
+/* ---------------- TREND CHART ---------------- */
+const yrs = DATA.year.filter(y=>y.Year>=2023);
+const chartTrendEl = document.getElementById('chartTrend');
+withChart(() => {
+  new Chart(chartTrendEl, {
+    type:'line',
+    data:{
+      labels: yrs.map(y=>y.Year),
+      datasets:[
+        {label:'Total cases', data:yrs.map(y=>y.Total_Cases), borderColor:INK, backgroundColor:INK, tension:.25, borderWidth:2.5},
+        {label:'POCSO', data:yrs.map(y=>y.POCSO_Cases), borderColor:SEAL, backgroundColor:SEAL, tension:.25, borderWidth:2},
+        {label:'Kidnapping / Missing', data:yrs.map(y=>y.Kidnap_Missing), borderColor:BRASS, backgroundColor:BRASS, tension:.25, borderWidth:2},
+        {label:'Serious crime', data:yrs.map(y=>y.Serious_Crime), borderColor:'#5B7A8C', backgroundColor:'#5B7A8C', tension:.25, borderWidth:2, borderDash:[4,3]},
+      ]
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true, grid:{color:LINE}}, x:{grid:{display:false}}}}
+  });
+}, chartTrendEl, 'Year-wise trend');
+
+/* ---------------- CATEGORY DASHBOARD ---------------- */
+const catConfig = {
+  pocso:{data:DATA.pocso_by_ps, color:SEAL, stats:[
+    ['Total POCSO Cases', t.pocso], ['% of Caseload', (t.pocso/t.unique_cases*100).toFixed(1)+'%'],
+    ['Overdue Hearing', t.pocso_overdue+' ('+(t.pocso_overdue/t.pocso*100).toFixed(1)+'%)'],
+    ['Pending > 2 Years', t.pocso_over2yr+' ('+(t.pocso_over2yr/t.pocso*100).toFixed(1)+'%)']]},
+  kidnap:{data:DATA.kidnap_by_ps, color:BRASS, stats:[
+    ['Total Kidnap/Missing Cases', t.kidnap], ['% of Caseload', (t.kidnap/t.unique_cases*100).toFixed(1)+'%'],
+    ['Overdue Hearing', t.kidnap_overdue+' ('+(t.kidnap_overdue/t.kidnap*100).toFixed(1)+'%)']]},
+  serious:{data:DATA.serious_by_ps, color:INK, stats:[
+    ['Total Serious Crime Cases', t.serious], ['Murder', t.murder], ['Attempt to Murder', t.attempt_murder],
+    ['Rape / Aggravated Sexual Assault', t.rape], ['Kidnapping / Abduction', t.kidnap]]},
+};
+let catChart;
+function renderCategory(cat){
+  const cfg = catConfig[cat];
+  document.getElementById('catStats').innerHTML = cfg.stats.map(s=>`
+    <div class="s"><div class="n">${s[1]}</div><div class="l">${s[0]}</div></div>
+  `).join('');
+  if(catChart){ try{ catChart.destroy(); }catch(e){} catChart = null; }
+  const catEl = document.getElementById('chartCategory');
+  withChart(() => {
+    catChart = new Chart(catEl, {
+      type:'bar',
+      data:{labels:cfg.data.map(d=>d.PS), datasets:[{label:'Cases', data:cfg.data.map(d=>d.n), backgroundColor:cfg.color, borderRadius:2, maxBarThickness:22}]},
+      options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{color:LINE}}, y:{grid:{display:false}}}}
+    });
+  }, catEl, cat + ' by station');
+}
+document.getElementById('catTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  document.querySelectorAll('#catTabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCategory(btn.dataset.cat);
+});
+renderCategory('pocso');
+
+/* ---------------- PENDENCY ---------------- */
+const agePS = [...DATA.age_ps].sort((a,b)=>b.pct_over_2yr-a.pct_over_2yr);
+const chartAgePSEl = document.getElementById('chartAgePS');
+withChart(() => {
+  new Chart(chartAgePSEl, {
+    type:'bar',
+    data:{labels:agePS.map(a=>a.PS), datasets:[{label:'% cases > 2 yrs old', data:agePS.map(a=>a.pct_over_2yr), backgroundColor:SEAL, borderRadius:2, maxBarThickness:20}]},
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, title:{display:true, text:'% of cases pending > 2 years, by station', color:INK, font:{family:"Georgia", size:13}}}, scales:{x:{max:100, grid:{color:LINE}}, y:{grid:{display:false}}}}
+  });
+}, chartAgePSEl, 'Ageing by station');
+
+const ageLabels = Object.keys(DATA.ageing);
+const chartAgeDonutEl = document.getElementById('chartAgeDonut');
+withChart(() => {
+  new Chart(chartAgeDonutEl, {
+    type:'doughnut',
+    data:{labels:ageLabels, datasets:[{data:ageLabels.map(l=>DATA.ageing[l]), backgroundColor:[BRASS,'#C9A24A',SEAL,INK]}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}, title:{display:true, text:'District-wide ageing distribution (161 cases)', color:INK, font:{family:"Georgia", size:13}}}}
+  });
+}, chartAgeDonutEl, 'Ageing distribution');
+
+/* ---------------- INSIGHTS ---------------- */
+const insights = [
+  '<b>60.2% of all cases (97 of 161)</b> are pending beyond two years, with a median case age of 841 days — the single most consequential number for the review meeting.',
+  '<b>68.3% of cases</b> have an overdue next-hearing date with no fresh listing recorded — a court-liaison/tracking gap independent of, and compounding, the ageing problem.',
+  '<b>POCSO accounts for 98.1%</b> of the district caseload (158 of 161 cases) — this register functions as a POCSO trial-tracking register.',
+  '<b>Four stations (Dumka Mufassil, Dumka Town, Ramgarh, Shikaripara) carry 45.3%</b> of the total caseload — burden is concentrated, not evenly spread.',
+  '<b>61.5% of all cases involve a serious offence</b> (murder, attempted murder, rape/aggravated sexual assault, or kidnapping) layered on the POCSO charge.',
+  '<b>Kidnapping/Missing cases show an 83.6% overdue-hearing rate</b> — higher than POCSO overall, despite being just over a third of cases.',
+  '<b>Five stations are RED-flagged</b> on the composite risk score (Ramgarh, Dumka Mufassil, Saraiya Hat, Maslia, Raneshwar) — the priority list for the first intervention tranche.',
+  '<b>Reported volume fell 32%</b> from 2023 (63) to 2025 (43), sharpest in Kidnapping/Missing (29→4) — verify against DCPU/FIR registers before reading this as a genuine decline.',
+  '<b>Four stations show a "Silent Hotspot" pattern</b> (Raneshwar, Tongra, Kathikund, Hansdiha) — low count with high-severity mix, a known under-reporting signature.',
+  '<b>Source data-quality gaps exist</b> — 8 cases with no recorded Police Station, 2 with no hearing date, 12 Registration Numbers corrupted by spreadsheet auto-formatting — all correctable at minimal cost.',
+];
+document.getElementById('insightList').innerHTML = insights.map(i=>`<li><p>${i}</p></li>`).join('');
+
+/* ---------------- ACTION MATRIX ---------------- */
+const matrix = [
+  ['Police (SP office / Station)', 'Clear overdue-hearing backlog at the 5 RED stations first; assign a nodal officer per RED station', 'Roll out a standard case-tracking template to all 16 stations with mandatory PS/date fields', 'Monthly PS-wise case-ageing review chaired by SP, using the RAG score as standing agenda'],
+  ['DCPU', 'Cross-verify the 2025 Kidnapping/Missing decline against the Missing Children Tracking Register', 'Establish joint DCPU–Police case-conferencing for all cases crossing the 1-year mark', 'Build a live PS-wise dashboard (this workbook as seed dataset), refreshed quarterly'],
+  ['CWC', 'Prioritise victim/survivor support-plan review for the 97 cases pending beyond two years', 'Outreach in the four Silent Hotspot station areas to test for under-reporting', 'Formalise a CWC sign-off checkpoint at case registration'],
+  ['Prosecution', 'Identify and list the oldest 20–30 cases for expedited hearing dates', 'Request a special-sitting / fast-track calendar for pending POCSO cases at the 5 RED stations', 'Standing POCSO-court liaison officer to sync Next-Date fields with court records'],
+];
+document.getElementById('matrixBody').innerHTML = matrix.map(r=>`
+  <tr><td class="role">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>
+`).join('');
+
+/* ---------------- DISTRICT MAP ---------------- */
+/* Approximate coordinates (public administrative sources) for each station's
+   block/town headquarters. These are orientation points for a briefing map,
+   not surveyed station addresses. */
+const PS_COORDS = {
+  'RAMGARH':          [24.56111, 87.24944],
+  'DUMKA MUFASSIL':   [24.3020, 87.2820],
+  'DUMKA TOWN':       [24.2685, 87.2472],
+  'DUMKA MAHILA':     [24.2685, 87.2472],
+  'SARAIYA HAT':      [24.58028, 87.01306],
+  'MASLIA':           [24.15806, 87.17845],
+  'RANESHWAR':        [24.03111, 87.41972],
+  'TALJHARI':         [24.42394, 86.91739],
+  'JAMA':             [24.36833, 87.26444],
+  'SHIKARIPARA':      [24.24417, 87.47094],
+  'TONGRA':           [24.04913, 87.25942],
+  'KATHIKUND':        [24.35889, 87.41972],
+  'GOPIKANDAR':       [24.43611, 87.48217],
+  'JARMUNDI':         [24.39870, 87.04639],
+  'HANSDIHA':         [24.60056, 87.08222],
+};
+const DUMKA_CENTER = [24.36, 87.24];
+
+function chartFallbackGeneric(container, label){
+  if (container) container.innerHTML = `<p style="color:var(--ink-soft); font-size:13px; padding:16px 0;">Map library did not load — ${label}. Use the "Open in Google Maps" links below, or the district embed on the left.</p>`;
+}
+
+/**
+ * Mirrors withChart()'s wait-for-CDN-fallback pattern for Leaflet.
+ */
+function withLeaflet(renderFn, container, label){
+  if (typeof L !== 'undefined'){
+    try{ renderFn(); }
+    catch(e){ console.error('Dashboard map error:', e); chartFallbackGeneric(container, label); }
+    return;
+  }
+  let done = false;
+  const timer = setTimeout(()=>finish(typeof L === 'undefined'), 6000);
+  function onReady(){ finish(false); }
+  function onFailed(){ finish(true); }
+  function finish(useFallback){
+    if(done) return; done = true;
+    clearTimeout(timer);
+    document.removeEventListener('leaflet-ready', onReady);
+    document.removeEventListener('leaflet-failed', onFailed);
+    if(useFallback){ chartFallbackGeneric(container, label); return; }
+    try{ renderFn(); }
+    catch(e){ console.error('Dashboard map error:', e); chartFallbackGeneric(container, label); }
+  }
+  document.addEventListener('leaflet-ready', onReady);
+  document.addEventListener('leaflet-failed', onFailed);
+}
+
+const mapEl = document.getElementById('leafletMap');
+withLeaflet(() => {
+  const map = L.map(mapEl, {scrollWheelZoom:false}).setView(DUMKA_CENTER, 9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 17,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const bounds = [];
+  DATA.ps.forEach(p => {
+    const coords = PS_COORDS[p.PS];
+    if(!coords) return; // e.g. any station without a mapped headquarters
+    bounds.push(coords);
+    const color = RAG_COLOR[p.RAG] || INKSOFT;
+    const marker = L.circleMarker(coords, {
+      radius: 7 + Math.min(10, p.Total_Cases/2),
+      color: '#fff', weight: 1.5, fillColor: color, fillOpacity: 0.85
+    }).addTo(map);
+
+    const gLink = `https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}`;
+    marker.bindPopup(
+      `<b>${p.PS}</b>` +
+      `${p.Total_Cases} total cases · RAG ${p.RAG}<br>` +
+      `Risk score ${p.RiskScore} · Hotspot: ${p.HotspotType}<br>` +
+      `<a href="${gLink}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`
+    );
+    marker.on('click', () => {
+      document.getElementById('risk').scrollIntoView({behavior:'smooth'});
+      setTimeout(()=>selectPS(p.PS), 350);
+    });
+  });
+  if (bounds.length) map.fitBounds(bounds, {padding:[24,24]});
+
+  // Legend
+  document.getElementById('mapLegend').innerHTML = Object.entries(RAG_COLOR).map(([k,c]) =>
+    `<span><i style="background:${c}"></i>${k}</span>`
+  ).join('') + `<span style="color:var(--ink-soft);">Marker size ≈ case volume</span>`;
+
+}, mapEl, 'station map is unavailable');
+</script>
+</body>
+</html>
